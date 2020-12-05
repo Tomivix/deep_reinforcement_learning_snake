@@ -1,0 +1,4 @@
+gym_snake/__pycache__
+.idea/*
+gym_snake/envs/__pycache__/
+gym_snake/envs/snake/__pycache__/
