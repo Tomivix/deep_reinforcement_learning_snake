@@ -9,9 +9,14 @@ from collections import deque
 
 print(tf.test.is_gpu_available())
 
-REPLAY_MEMORY_SIZE = 50_000
-MIN_REPLAY_MEMORY_SIZE = 1_000
-MODEL_NAME = "8x16_f_16d"
+DISCOUNT = 0.97
+REPLAY_MEMORY_SIZE = 50_000 # How many last steps to keep for model training
+MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
+MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
+UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
+
+MODEL_NAME = "8_16_f_16d"
+
 class DQNAgent:
     def __init__(self, env_shape):
 
@@ -22,7 +27,9 @@ class DQNAgent:
         self.target_model = self.create_model(env_shape)
         self.target_model.set_weights(self.model.get_weights())
 
-        #self.replay_memory = deque(maxlen=)
+        self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
+
+        self.tensorboard= tf.keras.callbacks.TensorBoard(log_dir='logs\\')
 
 
     def create_model(self, env_shape):
@@ -42,5 +49,3 @@ class DQNAgent:
         model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
         print(model.summary())
         return model
-
-
