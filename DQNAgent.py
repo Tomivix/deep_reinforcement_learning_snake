@@ -5,6 +5,8 @@ from tensorflow.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten,
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.optimizers import Adam
 
+from ModifiedTensorBoard import ModifiedTensorBoard
+
 from collections import deque
 import numpy as np
 import random
@@ -33,7 +35,7 @@ class DQNAgent:
         # An array with last n steps for training
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
-        self.tensorboard = tf.keras.callbacks.TensorBoard(log_dir=f'logs\\{MODEL_NAME}_{int(time.time())}')
+        self.tensorboard = ModifiedTensorBoard(log_dir=f'logs\\{MODEL_NAME}_{int(time.time())}')
 
         # Used to count when to update target network with main network's weights
         self.target_update_counter = 0
@@ -118,7 +120,7 @@ class DQNAgent:
 
     def get_qs(self, state):
         #return self.model.predict(np.array(state).reshape(-1, *state.shape) / 255)[0]
-        return self.target_model.predict(state/255)
+        return self.target_model.predict(state.reshape(-1, *state.shape)/255)[0]
 
 
 

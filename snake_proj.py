@@ -1,6 +1,5 @@
 import gym
 import gym_snake
-from DQNAgent import DQNAgent
 import numpy as np
 import tensorflow as tf
 
@@ -8,6 +7,7 @@ import time
 import os
 import random
 from tqdm import tqdm
+from DQNAgent import DQNAgent, MODEL_NAME
 
 MEMORY_FRACTION = 0.20 # useful to train multiple snakes
 
@@ -16,7 +16,7 @@ MEMORY_FRACTION = 0.20 # useful to train multiple snakes
 EPISODES = 20_000
 
 # Exploration settings
-epsilon = 1  # not a constant, going to be decayed
+epsilon = 0.1  # not a constant, going to be decayed #### zmienilem z 1 na 0.1
 EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
@@ -56,14 +56,14 @@ snakes_array = game_controller.snakes
 snake_object1 = snakes_array[0]
 
 # For stats
-ep_rewards = [-200]
+ep_rewards = [-1]
 
-MIN_REWARD = -1000
+MIN_REWARD = 1
 
 # Iterate over episodes
 for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
-    env.render()  # Render latest instance of game
+    #env.render()  # Render latest instance of game
 
     # Update tensorboard step every episode
     agent.tensorboard.step = episode
@@ -78,6 +78,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
     # Reset flag and start iterating until episode ends
     done = False
     while not done:
+        #env.render() podczas testowania
 
         # This part stays mostly the same, the change is to query a model for Q values
         if np.random.random() > epsilon:
@@ -85,7 +86,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             action = np.argmax(agent.get_qs(current_state))
         else:
             # Get random action
-            action = np.random.randint(0, env.ACTION_SPACE_SIZE)
+            #action = np.random.randint(0, env.ACTION_SPACE_SIZE)
+            action = np.random.randint(0, 3)
 
         # print('action -> ', action)
         # last_obs, rewards, done, info = env.step(action)  # Implement action
@@ -99,7 +101,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         # if done:
         #     env.reset()
 
-        new_state, reward, done = env.step(action)
+        new_state, reward, done, info = env.step([action])
 
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
@@ -120,11 +122,20 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
-        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
+        print('==========================')
+        print(f'episod: {episode}')
+        print(f'average_reward: {average_reward}')
+        print(f'min_reward: {min_reward}')
+        print(f'max_reward: {max_reward}')
+        print('==========================')
+        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon) # tak bylo
+        #agent.tensorboard._write_logs(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
 
         # Save model, but only when min reward is greater or equal a set value
-        if min_reward >= MIN_REWARD:
-            agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+        #if min_reward >= MIN_REWARD:
+        if episode % 500 == 0 or episode == 1:
+            #agent.model.save(f'models\{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+            agent.model.save(f'models\{MODEL_NAME}_{episode}.model')
 
     # Decay epsilon
     if epsilon > MIN_EPSILON:
@@ -134,9 +145,5 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 env.close()
 
 
-# done = False
-# for _ in range(1000):  # run for 1000 steps
-#
-#     action = env.action_space.sample()  # Random action
-#
+
 
