@@ -16,8 +16,8 @@ MEMORY_FRACTION = 0.20 # useful to train multiple snakes
 EPISODES = 20_000
 
 # Exploration settings
-epsilon = 0.1  # not a constant, going to be decayed #### zmienilem z 1 na 0.1
-EPSILON_DECAY = 0.99975
+epsilon = 0.5  # not a constant, going to be decayed #### zmienilem z 1 na 0.1
+EPSILON_DECAY = 0.99965
 MIN_EPSILON = 0.001
 
 #  Stats settings
@@ -32,8 +32,6 @@ if not os.path.isdir('models'):
 random.seed(1)
 np.random.seed(1)
 tf.random.set_seed(1)
-
-
 
 ## Creating environment
 env = gym.make('snake-v0')
@@ -57,8 +55,11 @@ snake_object1 = snakes_array[0]
 
 # For stats
 ep_rewards = [-1]
+apple_rewards = [0]
 
 MIN_REWARD = 1
+
+print(agent.model.summary())
 
 # Iterate over episodes
 for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
@@ -77,7 +78,9 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
     # Reset flag and start iterating until episode ends
     done = False
+    apple_count = 0
     while not done:
+
         #env.render() podczas testowania
 
         # This part stays mostly the same, the change is to query a model for Q values
@@ -103,6 +106,9 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
         new_state, reward, done, info = env.step([action])
 
+        if reward == 20:
+            apple_count += 1
+
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
 
@@ -118,15 +124,26 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
     # Append episode reward to a list and log stats (every given number of episodes)
     ep_rewards.append(episode_reward)
+    apple_rewards.append(apple_count)
     if not episode % AGGREGATE_STATS_EVERY or episode == 1:
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
+        
+        average_apple = sum(apple_rewards[-AGGREGATE_STATS_EVERY:])/len(apple_rewards[-AGGREGATE_STATS_EVERY:])
+        min_apple = min(apple_rewards[-AGGREGATE_STATS_EVERY:])
+        max_apple = max(apple_rewards[-AGGREGATE_STATS_EVERY:])
+        
         print('==========================')
-        print(f'episod: {episode}')
+        print(f'episode: {episode}')
         print(f'average_reward: {average_reward}')
         print(f'min_reward: {min_reward}')
         print(f'max_reward: {max_reward}')
+        print(f'epsilon: {epsilon}')
+        print()
+        print(f'average_apple: {average_apple}')
+        print(f'min_apple: {min_apple}')
+        print(f'max_apple: {max_apple}')
         print('==========================')
         agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon) # tak bylo
         #agent.tensorboard._write_logs(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
