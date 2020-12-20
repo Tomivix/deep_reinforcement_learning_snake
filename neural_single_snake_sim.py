@@ -45,6 +45,8 @@ SHOW_PREVIEW = False
 ## Creating environment
 env = gym.make('snake-v0')
 env.grid_size = [10, 10]
+env.unit_size = 1
+env.unit_gap = 0
 
 ## Observing snake for now
 obs = env.reset()
@@ -63,7 +65,7 @@ sess = tf.compat.v1.Session(config=config)
 
 #agent = DQNAgent(obs.shape)
 # unikanie scian 8_16_f_16d_2500.model'
-model = tf.keras.models.load_model('models\8_16_f_16d_2500.model')
+model = tf.keras.models.load_model('models/4_8_f_16d_64d_eps_0_1_same_20000.model')
 
 # Controller
 game_controller = env.controller

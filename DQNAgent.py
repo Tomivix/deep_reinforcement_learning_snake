@@ -20,7 +20,7 @@ MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start t
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
 
-MODEL_NAME = "4_8_f_16d_64d_eps_0_1"
+MODEL_NAME = "4_8_f_16d_64d_eps_0_1_same"
 
 class DQNAgent:
     def __init__(self, env_shape):
@@ -43,11 +43,11 @@ class DQNAgent:
     def create_model(self, env_shape):
         model = Sequential()
 
-        model.add(Conv2D(4, (3, 3), activation='relu', input_shape=env_shape))
+        model.add(Conv2D(4, (3, 3), activation='relu', input_shape=env_shape, padding='same'))
         model.add(Dropout(0.2))
 
-        model.add(Conv2D(8, (3, 3), activation='relu'))
-        model.add(MaxPool2D((3, 3)))
+        model.add(Conv2D(8, (3, 3), activation='relu', padding='same'))
+        # model.add(MaxPool2D((3, 3)))
         model.add(Dropout(0.2))
 
         model.add(Flatten())

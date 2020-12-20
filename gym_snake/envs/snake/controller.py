@@ -75,7 +75,7 @@ class Controller():
             self.grid.draw(snake.body[0], self.grid.BODY_COLOR) # Redraw tail
             self.grid.connect(snake.body[0], snake.body[1], self.grid.BODY_COLOR)
             self.grid.cover(snake.head, snake.head_color) # Avoid miscount of grid.open_space
-            reward = 20
+            reward = 50
             self.grid.new_food()
         else:
             reward = -1
