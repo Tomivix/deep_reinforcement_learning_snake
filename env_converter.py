@@ -1,3 +1,6 @@
+
+import numpy as np
+
 # Definitions of values at particular positions:
 #  0 - (int) distance between snake's head and the top wall
 #  1 - (int) distance between snake's head and the right wall
@@ -28,12 +31,11 @@
 # 26 - (int) is snake's tail moving to the south?
 # 27 - (int) is snake's tail moving to the west?
 
-import numpy as np
 
-def get_input_for_nn(envir, id):
+def get_input_for_nn(envir, sid=0):
     values = [None] * 28
 
-    snake = envir.controller.snakes[id]
+    snake = envir.controller.snakes[sid]
 
     sx = snake.head[0]
     sy = snake.head[1]
@@ -79,7 +81,7 @@ def get_input_for_nn(envir, id):
         elif np.array_equal(color, fc):
             values[18] = True
 
-    md = min(sx, my - sy)
+    md = min(mx - sx, sy)
     for cd in range(0, md + 1):
         color = envir.controller.grid.color_of((sx + cd, sy - cd))
         if np.array_equal(color, bc):
@@ -95,7 +97,7 @@ def get_input_for_nn(envir, id):
         elif np.array_equal(color, fc):
             values[15] = True
 
-    md = min(mx - sx, sy)
+    md = min(sx, my - sy)
     for cd in range(0, md + 1):
         color = envir.controller.grid.color_of((sx - cd, sy + cd))
         if np.array_equal(color, bc):
@@ -111,8 +113,8 @@ def get_input_for_nn(envir, id):
         elif np.array_equal(color, fc):
             values[19] = True
 
-    for i in range(0, 4):
-        values[20 + i] = 1 if snake.direction == i else 0
+    for ind in range(0, 4):
+        values[20 + ind] = 1 if snake.direction == ind else 0
 
     tx = snake.body[0][0]
     ty = snake.body[0][1]
