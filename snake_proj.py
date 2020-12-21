@@ -1,5 +1,5 @@
 # TODO ustawic limit krokow snejka na np. 300
-
+# dostosowac epsilon do wiekszej liczby EPISODOW
 import gym
 import gym_snake
 import numpy as np
@@ -17,11 +17,11 @@ MEMORY_FRACTION = 0.20 # useful to train multiple snakes
 
 
 # Environment settings
-EPISODES = 40_000
+EPISODES = 60_000
 
 # Exploration settings
 START_EPSILON = 0.2
-epsilon = START_EPSILON # not a constant, going to be decayed #### zmienilem z 1 na 0.1
+epsilon = START_EPSILON  # not a constant, going to be decayed #### zmienilem z 1 na 0.1
 
 EPSILON_DECAY = 0.999
 MIN_EPSILON = 0.001
@@ -97,11 +97,11 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
     while not done:
         #env.render() podczas testowania
 
-        if env.controller.snakes[0] is not None:
-            nn_input = get_input_for_nn(env, 0)
-            for i in range(0, 28):
-                print(f'{episode} {step} {i} {nn_input[i]}')
-            print('==========================')
+        #if env.controller.snakes[0] is not None:
+        #    nn_input = get_input_for_nn(env, 0)
+        #    for i in range(0, 28):
+        #        print(f'{episode} {step} {i} {nn_input[i]}')
+        #    print('==========================')
 
         # This part stays mostly the same, the change is to query a model for Q values
         if np.random.random() > epsilon:
@@ -143,6 +143,9 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
         current_state = new_state
         step += 1
+
+        if step > 300:
+            done = True
 
     # Append episode reward to a list and log stats (every given number of episodes)
     ep_rewards.append(episode_reward)

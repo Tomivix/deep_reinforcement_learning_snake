@@ -132,13 +132,13 @@ def get_input_for_nn(env, sid=0):
     for ind in range(0, 4):
         values[ind] /= (env.grid_size[0] - 1)
 
-    print('VALUES: ')
-    for index, value in enumerate(values):
-        print(index, value)
+    #print('VALUES: ')
+    #for index, value in enumerate(values):
+    #    print(index, value)
 
     values = np.asarray(values).reshape(28,)
-    print(values)
-    print(values.shape)
+    #print(values)
+    #print(values.shape)
 
     #print(values[0:5])
     return values

@@ -186,7 +186,8 @@ class Grid():
         """
 
         for i in range(len(snake.body)):
-            self.erase(snake.body.popleft())
+            #self.erase(snake.body.popleft()) # 21.12.2020
+            self.erase(snake.body[i])
 
     def food_space(self, coord):
         """

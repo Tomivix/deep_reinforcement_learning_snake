@@ -95,7 +95,7 @@ class Controller():
         assert self.dead_snakes[snake_idx] is not None
         self.grid.erase(self.dead_snakes[snake_idx].head)
         self.grid.erase_snake_body(self.dead_snakes[snake_idx])
-        self.dead_snakes[snake_idx] = None
+        # self.dead_snakes[snake_idx] = None # 21.12.2020 wycommentowane
         self.snakes_remaining -= 1
 
     def step(self, directions):
