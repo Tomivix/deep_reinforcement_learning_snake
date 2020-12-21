@@ -32,18 +32,20 @@ import numpy as np
 # 27 - (int) is snake's tail moving to the west?
 
 
-def get_input_for_nn(envir, sid=0):
+def get_input_for_nn(env, sid=0):
     values = [None] * 28
 
-    snake = envir.controller.snakes[sid]
+    snake = env.controller.snakes[sid]
+    if snake is None:
+        snake = env.controller.dead_snakes[sid]
 
     sx = snake.head[0]
     sy = snake.head[1]
-    mx = envir.grid_size[0] - 1
-    my = envir.grid_size[1] - 1
+    mx = env.grid_size[0] - 1
+    my = env.grid_size[1] - 1
 
-    bc = envir.controller.grid.BODY_COLOR
-    fc = envir.controller.grid.FOOD_COLOR
+    bc = env.controller.grid.BODY_COLOR
+    fc = env.controller.grid.FOOD_COLOR
 
     values[0] = sy
     values[1] = mx - sx
@@ -54,28 +56,28 @@ def get_input_for_nn(envir, sid=0):
         values[ind] = False
 
     for cy in range(sy - 1, -1, -1):
-        color = envir.controller.grid.color_of((sx, cy))
+        color = env.controller.grid.color_of((sx, cy))
         if np.array_equal(color, bc):
             values[4] = True
         elif np.array_equal(color, fc):
             values[12] = True
 
     for cx in range(sx + 1, mx + 1):
-        color = envir.controller.grid.color_of((cx, sy))
+        color = env.controller.grid.color_of((cx, sy))
         if np.array_equal(color, bc):
             values[6] = True
         elif np.array_equal(color, fc):
             values[14] = True
 
     for cy in range(sy + 1, my + 1):
-        color = envir.controller.grid.color_of((sx, cy))
+        color = env.controller.grid.color_of((sx, cy))
         if np.array_equal(color, bc):
             values[8] = True
         elif np.array_equal(color, fc):
             values[16] = True
 
     for cx in range(sx - 1, -1, -1):
-        color = envir.controller.grid.color_of((cx, sy))
+        color = env.controller.grid.color_of((cx, sy))
         if np.array_equal(color, bc):
             values[10] = True
         elif np.array_equal(color, fc):
@@ -83,15 +85,15 @@ def get_input_for_nn(envir, sid=0):
 
     md = min(mx - sx, sy)
     for cd in range(0, md + 1):
-        color = envir.controller.grid.color_of((sx + cd, sy - cd))
+        color = env.controller.grid.color_of((sx + cd, sy - cd))
         if np.array_equal(color, bc):
             values[5] = True
         elif np.array_equal(color, fc):
             values[13] = True
 
     md = min(mx - sx, my - sy)
-    for cd in range(0, md + 1) :
-        color = envir.controller.grid.color_of((sx + cd, sy + cd))
+    for cd in range(0, md + 1):
+        color = env.controller.grid.color_of((sx + cd, sy + cd))
         if np.array_equal(color, bc):
             values[7] = True
         elif np.array_equal(color, fc):
@@ -99,7 +101,7 @@ def get_input_for_nn(envir, sid=0):
 
     md = min(sx, my - sy)
     for cd in range(0, md + 1):
-        color = envir.controller.grid.color_of((sx - cd, sy + cd))
+        color = env.controller.grid.color_of((sx - cd, sy + cd))
         if np.array_equal(color, bc):
             values[9] = True
         elif np.array_equal(color, fc):
@@ -107,7 +109,7 @@ def get_input_for_nn(envir, sid=0):
 
     md = min(sx, sy)
     for cd in range(0, md + 1):
-        color = envir.controller.grid.color_of((sx - cd, sy - cd))
+        color = env.controller.grid.color_of((sx - cd, sy - cd))
         if np.array_equal(color, bc):
             values[11] = True
         elif np.array_equal(color, fc):
@@ -127,7 +129,7 @@ def get_input_for_nn(envir, sid=0):
     values[27] = 1 if tx - sx == 1 else 0
 
     for ind in range(0, 4):
-        values[ind] /= (envir.grid_size[0] - 1)
+        values[ind] /= (env.grid_size[0] - 1)
 
     print('VALUES: ')
     for index, value in enumerate(values):
