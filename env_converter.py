@@ -55,65 +55,66 @@ def get_input_for_nn(env, sid=0):
     for ind in range(4, 20):
         values[ind] = False
 
-    for cy in range(sy - 1, -1, -1):
-        color = env.controller.grid.color_of((sx, cy))
-        if np.array_equal(color, bc):
-            values[4] = True
-        elif np.array_equal(color, fc):
-            values[12] = True
+    if env.controller.snakes[sid] is not None:
+        for cy in range(sy - 1, -1, -1):
+            color = env.controller.grid.color_of((sx, cy))
+            if np.array_equal(color, bc):
+                values[4] = True
+            elif np.array_equal(color, fc):
+                values[12] = True
 
-    for cx in range(sx + 1, mx + 1):
-        color = env.controller.grid.color_of((cx, sy))
-        if np.array_equal(color, bc):
-            values[6] = True
-        elif np.array_equal(color, fc):
-            values[14] = True
+        for cx in range(sx + 1, mx + 1):
+            color = env.controller.grid.color_of((cx, sy))
+            if np.array_equal(color, bc):
+                values[6] = True
+            elif np.array_equal(color, fc):
+                values[14] = True
 
-    for cy in range(sy + 1, my + 1):
-        color = env.controller.grid.color_of((sx, cy))
-        if np.array_equal(color, bc):
-            values[8] = True
-        elif np.array_equal(color, fc):
-            values[16] = True
+        for cy in range(sy + 1, my + 1):
+            color = env.controller.grid.color_of((sx, cy))
+            if np.array_equal(color, bc):
+                values[8] = True
+            elif np.array_equal(color, fc):
+                values[16] = True
 
-    for cx in range(sx - 1, -1, -1):
-        color = env.controller.grid.color_of((cx, sy))
-        if np.array_equal(color, bc):
-            values[10] = True
-        elif np.array_equal(color, fc):
-            values[18] = True
+        for cx in range(sx - 1, -1, -1):
+            color = env.controller.grid.color_of((cx, sy))
+            if np.array_equal(color, bc):
+                values[10] = True
+            elif np.array_equal(color, fc):
+                values[18] = True
 
-    md = min(mx - sx, sy)
-    for cd in range(0, md + 1):
-        color = env.controller.grid.color_of((sx + cd, sy - cd))
-        if np.array_equal(color, bc):
-            values[5] = True
-        elif np.array_equal(color, fc):
-            values[13] = True
+        md = min(mx - sx, sy)
+        for cd in range(0, md + 1):
+            color = env.controller.grid.color_of((sx + cd, sy - cd))
+            if np.array_equal(color, bc):
+                values[5] = True
+            elif np.array_equal(color, fc):
+                values[13] = True
 
-    md = min(mx - sx, my - sy)
-    for cd in range(0, md + 1):
-        color = env.controller.grid.color_of((sx + cd, sy + cd))
-        if np.array_equal(color, bc):
-            values[7] = True
-        elif np.array_equal(color, fc):
-            values[15] = True
+        md = min(mx - sx, my - sy)
+        for cd in range(0, md + 1):
+            color = env.controller.grid.color_of((sx + cd, sy + cd))
+            if np.array_equal(color, bc):
+                values[7] = True
+            elif np.array_equal(color, fc):
+                values[15] = True
 
-    md = min(sx, my - sy)
-    for cd in range(0, md + 1):
-        color = env.controller.grid.color_of((sx - cd, sy + cd))
-        if np.array_equal(color, bc):
-            values[9] = True
-        elif np.array_equal(color, fc):
-            values[17] = True
+        md = min(sx, my - sy)
+        for cd in range(0, md + 1):
+            color = env.controller.grid.color_of((sx - cd, sy + cd))
+            if np.array_equal(color, bc):
+                values[9] = True
+            elif np.array_equal(color, fc):
+                values[17] = True
 
-    md = min(sx, sy)
-    for cd in range(0, md + 1):
-        color = env.controller.grid.color_of((sx - cd, sy - cd))
-        if np.array_equal(color, bc):
-            values[11] = True
-        elif np.array_equal(color, fc):
-            values[19] = True
+        md = min(sx, sy)
+        for cd in range(0, md + 1):
+            color = env.controller.grid.color_of((sx - cd, sy - cd))
+            if np.array_equal(color, bc):
+                values[11] = True
+            elif np.array_equal(color, fc):
+                values[19] = True
 
     for ind in range(0, 4):
         values[20 + ind] = 1 if snake.direction == ind else 0
