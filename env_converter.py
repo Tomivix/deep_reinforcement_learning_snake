@@ -126,8 +126,16 @@ def get_input_for_nn(envir, sid=0):
     values[26] = 1 if sy - ty == 1 else 0
     values[27] = 1 if tx - sx == 1 else 0
 
+    for ind in range(0, 4):
+        values[ind] /= (envir.grid_size[0] - 1)
+
     print('VALUES: ')
     for index, value in enumerate(values):
         print(index, value)
 
+    values = np.asarray(values).reshape(28,)
+    print(values)
+    print(values.shape)
+
+    #print(values[0:5])
     return values

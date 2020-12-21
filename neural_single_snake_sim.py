@@ -45,8 +45,8 @@ SHOW_PREVIEW = False
 ## Creating environment
 env = gym.make('snake-v0')
 env.grid_size = [10, 10]
-env.unit_size = 1
-env.unit_gap = 0
+env.unit_size = 1  # wycommentowac dla moich konwolucyjnych
+env.unit_gap = 0   # wycommenowac dla moich konwolucyjnych
 
 ## Observing snake for now
 obs = env.reset()
@@ -65,7 +65,8 @@ sess = tf.compat.v1.Session(config=config)
 
 #agent = DQNAgent(obs.shape)
 # unikanie scian 8_16_f_16d_2500.model'
-model = tf.keras.models.load_model('models/4_8_f_16d_64d_eps_0_1_same_20000.model')
+# schodzenie praktycznie pionowo: 8c_maxp_16c_maxp_f_8d_32d_eps_0_2_3500.model'
+model = tf.keras.models.load_model('models\8c_maxp_16c_maxp_f_8d_32d_eps_0_2_11000.model')
 
 # Controller
 game_controller = env.controller
@@ -82,6 +83,9 @@ snake_object1 = snakes_array[0]
 
 set_session(sess)
 
+
+from env_converter import  get_input_for_nn
+
 for i in range(100):
 	obs = env.reset()
 	done = False
@@ -89,8 +93,11 @@ for i in range(100):
 	no_of_moves = 0
 	while not done:  # run for 1000 steps
 		env.render()  # Render latest instance of game
+		if env.controller.snakes[0] is not None:
+			get_input_for_nn(env, 0)
 		action = env.action_space.sample()  # Random action
-		action = np.argmax(model.predict(obs.reshape(-1, *obs.shape)/255)[0])
+		#action = np.argmax(model.predict(obs.reshape(-1, *obs.shape)/255)[0])
+
 		#action = model.predict
 		print('action -> ', action)
 		print(f'EPISODE:  {i}')
@@ -106,8 +113,8 @@ for i in range(100):
 		
 		print('===================')
 		#time.sleep(10)
-		#if done:
-		#	env.reset()
+		if done:
+			env.reset()
 		
 		if no_of_moves > 150:
 			done = True

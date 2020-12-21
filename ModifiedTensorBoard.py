@@ -2,7 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard
 
 import os
-import DQNAgent
+#import DQNAgent # dla convnets
+import DQNAgent_simple_nn
 #from DQNAgent import MODEL_NAME
 
 #...
@@ -48,7 +49,8 @@ class ModifiedTensorBoard(TensorBoard):
         super().__init__(**kwargs)
         self.step = 1
         self.writer = tf.summary.create_file_writer(self.log_dir)
-        self._log_write_dir = os.path.join(self.log_dir, DQNAgent.MODEL_NAME)
+        # self._log_write_dir = os.path.join(self.log_dir, DQNAgent.MODEL_NAME)  # for convnets
+        self._log_write_dir = os.path.join(self.log_dir, DQNAgent_simple_nn.MODEL_NAME)  # for simple nn
 
     # Overriding this method to stop creating default log writer
     def set_model(self, model):

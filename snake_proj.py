@@ -1,3 +1,5 @@
+# TODO ustawic limit krokow snejka na np. 300
+
 import gym
 import gym_snake
 import numpy as np
@@ -7,18 +9,23 @@ import time
 import os
 import random
 from tqdm import tqdm
-from DQNAgent import DQNAgent, MODEL_NAME
+# from DQNAgent import DQNAgent, MODEL_NAME  # comment for convnets
+from DQNAgent_simple_nn import DQNAgent_simple_nn, MODEL_NAME
+from env_converter import get_input_for_nn
 
 MEMORY_FRACTION = 0.20 # useful to train multiple snakes
 
 
 # Environment settings
-EPISODES = 20_000
+EPISODES = 40_000
 
 # Exploration settings
-epsilon = 0.5  # not a constant, going to be decayed #### zmienilem z 1 na 0.1
-EPSILON_DECAY = 0.99965
+START_EPSILON = 0.2
+epsilon = START_EPSILON # not a constant, going to be decayed #### zmienilem z 1 na 0.1
+
+EPSILON_DECAY = 0.999
 MIN_EPSILON = 0.001
+min_epsilon_counter = 0
 
 #  Stats settings
 AGGREGATE_STATS_EVERY = 50  # episodes
@@ -39,137 +46,14 @@ env.grid_size = [10, 10]
 env.unit_size = 1
 env.unit_gap = 0
 
+
 ## Observing snake for now
 obs = env.reset()
 
-agent = DQNAgent(obs.shape)
-
-# Definitions of values at particular positions:
-#  0 - (int) distance between snake's head and the top wall
-#  1 - (int) distance between snake's head and the right wall
-#  2 - (int) distance between snake's head and the bottom wall
-#  3 - (int) distance between snake's head and the left wall
-#  4 - (bool) can snake see their body to the north?
-#  5 - (bool) can snake see their body to the northeast?
-#  6 - (bool) can snake see their body to the east?
-#  7 - (bool) can snake see their body to the southeast?
-#  8 - (bool) can snake see their body to the south?
-#  9 - (bool) can snake see their body to the southwest?
-# 10 - (bool) can snake see their body to the west?
-# 11 - (bool) can snake see their body to the northwest?
-# 12 - (bool) can snake see food to the north?
-# 13 - (bool) can snake see food to the northeast?
-# 14 - (bool) can snake see food to the east?
-# 15 - (bool) can snake see food to the southeast?
-# 16 - (bool) can snake see food to the south?
-# 17 - (bool) can snake see food to the southwest?
-# 18 - (bool) can snake see food to the west?
-# 19 - (bool) can snake see food to the northwest?
-# 20 - (int) is snake's head moving to the north?
-# 21 - (int) is snake's head moving to the east?
-# 22 - (int) is snake's head moving to the south?
-# 23 - (int) is snake's head moving to the west?
-# 24 - (int) is snake's tail moving to the north?
-# 25 - (int) is snake's tail moving to the east?
-# 26 - (int) is snake's tail moving to the south?
-# 27 - (int) is snake's tail moving to the west?
+# agent = DQNAgent(obs.shape) # for convnets
+agent = DQNAgent_simple_nn((28,)) # for simple nn
 
 
-def get_input_for_nn(envir, id):
-    values = [None] * 28
-
-    snake = envir.controller.snakes[id]
-
-    sx = snake.head[0]
-    sy = snake.head[1]
-    mx = envir.grid_size[0] - 1
-    my = envir.grid_size[1] - 1
-
-    bc = envir.controller.grid.BODY_COLOR
-    fc = envir.controller.grid.FOOD_COLOR
-
-    values[0] = sy
-    values[1] = mx - sx
-    values[2] = my - sy
-    values[3] = sx
-
-    for ind in range(4, 20):
-        values[ind] = False
-
-    for cy in range(sy - 1, -1, -1):
-        color = envir.controller.grid.color_of((sx, cy))
-        if np.array_equal(color, bc):
-            values[4] = True
-        elif np.array_equal(color, fc):
-            values[12] = True
-
-    for cx in range(sx + 1, mx + 1):
-        color = envir.controller.grid.color_of((cx, sy))
-        if np.array_equal(color, bc):
-            values[6] = True
-        elif np.array_equal(color, fc):
-            values[14] = True
-
-    for cy in range(sy + 1, my + 1):
-        color = envir.controller.grid.color_of((sx, cy))
-        if np.array_equal(color, bc):
-            values[8] = True
-        elif np.array_equal(color, fc):
-            values[16] = True
-
-    for cx in range(sx - 1, -1, -1):
-        color = envir.controller.grid.color_of((cx, sy))
-        if np.array_equal(color, bc):
-            values[10] = True
-        elif np.array_equal(color, fc):
-            values[18] = True
-
-    md = min(sx, my - sy)
-    for cd in range(0, md + 1):
-        color = envir.controller.grid.color_of((sx - cd, sy + cd))
-        if np.array_equal(color, bc):
-            values[5] = True
-        elif np.array_equal(color, fc):
-            values[13] = True
-
-    md = min(mx - sx, my - sy)
-    for cd in range(0, md + 1) :
-        color = envir.controller.grid.color_of((sx + cd, sy + cd))
-        if np.array_equal(color, bc):
-            values[7] = True
-        elif np.array_equal(color, fc):
-            values[15] = True
-
-    md = min(mx - sx, sy)
-    for cd in range(0, md + 1):
-        color = envir.controller.grid.color_of((sx + cd, sy - cd))
-        if np.array_equal(color, bc):
-            values[9] = True
-        elif np.array_equal(color, fc):
-            values[17] = True
-
-    md = min(sx, sy)
-    for cd in range(0, md + 1):
-        color = envir.controller.grid.color_of((sx - cd, sy - cd))
-        if np.array_equal(color, bc):
-            values[11] = True
-        elif np.array_equal(color, fc):
-            values[19] = True
-
-    for i in range(0, 4):
-        values[20 + i] = 1 if snake.direction == i else 0
-
-    tx = snake.body[0][0]
-    ty = snake.body[0][1]
-    sx = snake.body[1][0]
-    sy = snake.body[1][1]
-
-    values[24] = 1 if ty - sy == 1 else 0
-    values[25] = 1 if sx - tx == 1 else 0
-    values[26] = 1 if sy - ty == 1 else 0
-    values[27] = 1 if tx - sx == 1 else 0
-
-    return values
 
 
 # Controller
@@ -205,12 +89,12 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
     # Reset environment and get initial state
     current_state = env.reset()
+    current_state = get_input_for_nn(env, 0)  # comment for convnets
 
     # Reset flag and start iterating until episode ends
     done = False
     apple_count = 0
     while not done:
-
         #env.render() podczas testowania
 
         if env.controller.snakes[0] is not None:
@@ -241,6 +125,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         #     env.reset()
 
         new_state, reward, done, info = env.step([action])
+        new_state = get_input_for_nn(env, 0)  # comment line for convnets
 
         if reward == 50:
             apple_count += 1
@@ -252,6 +137,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             env.render()
 
         # Every step we update replay memory and train main network
+        agent.update_replay_memory((current_state, action, reward, new_state, done))
         agent.update_replay_memory((current_state, action, reward, new_state, done))
         agent.train(done, step)
 
@@ -265,7 +151,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:])/len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
-        
+
         average_apple = sum(apple_rewards[-AGGREGATE_STATS_EVERY:])/len(apple_rewards[-AGGREGATE_STATS_EVERY:])
         min_apple = min(apple_rewards[-AGGREGATE_STATS_EVERY:])
         max_apple = max(apple_rewards[-AGGREGATE_STATS_EVERY:])
@@ -282,7 +168,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         print(f'min_apple: {min_apple}')
         print(f'max_apple: {max_apple}')
         print('==========================')
-        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon) # tak bylo
+        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, average_apple=average_apple, min_apple=min_apple, max_apple=max_apple) # tak bylo
         #agent.tensorboard._write_logs(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
 
         # Save model, but only when min reward is greater or equal a set value
@@ -295,6 +181,10 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
     if epsilon > MIN_EPSILON:
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
+    else:
+        min_epsilon_counter += 1
+        if min_epsilon_counter % 500 == 0:
+            epsilon = START_EPSILON
 
 env.close()
 
