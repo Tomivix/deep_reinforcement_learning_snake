@@ -66,7 +66,9 @@ sess = tf.compat.v1.Session(config=config)
 #agent = DQNAgent(obs.shape)
 # unikanie scian 8_16_f_16d_2500.model'
 # schodzenie praktycznie pionowo: 8c_maxp_16c_maxp_f_8d_32d_eps_0_2_3500.model'
-model = tf.keras.models.load_model('models\8c_maxp_16c_maxp_f_8d_32d_eps_0_2_11000.model')
+# 'kolejne: models\8c_maxp_16c_maxp_f_8d_32d_eps_0_2_11000.model'
+# najnowsze - z zastosowaniem zwyklej sieci neuronowej: d127_d256_d64_d64_d4_1500.model' dziala bardzo dobrze
+model = tf.keras.models.load_model('models\od_Tomka_4_8_f_16d_64d_eps_0_1_same_20000.model')
 
 # Controller
 game_controller = env.controller
@@ -93,10 +95,14 @@ for i in range(100):
 	no_of_moves = 0
 	while not done:  # run for 1000 steps
 		env.render()  # Render latest instance of game
-		if env.controller.snakes[0] is not None:
-			get_input_for_nn(env, 0)
-		action = env.action_space.sample()  # Random action
-		#action = np.argmax(model.predict(obs.reshape(-1, *obs.shape)/255)[0])
+		#if env.controller.snakes[0] is not None:
+		#	get_input_for_nn(env, 0)
+		
+		
+		#action = env.action_space.sample()  # Random action
+		
+		#action = np.argmax(model.predict(get_input_for_nn(env, 0).reshape(-1, *get_input_for_nn(env, 0).shape))[0]) # zwykla siec
+		action = np.argmax(model.predict(obs.reshape(-1, *obs.shape)/255)[0]) #kolwolucyjne
 
 		#action = model.predict
 		print('action -> ', action)
@@ -116,6 +122,6 @@ for i in range(100):
 		if done:
 			env.reset()
 		
-		if no_of_moves > 150:
+		if no_of_moves > 400:
 			done = True
 env.close()
