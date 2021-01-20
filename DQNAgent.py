@@ -12,18 +12,23 @@ import numpy as np
 import random
 import time
 
-print(tf.test.is_gpu_available())
 
 DISCOUNT = 0.97
-REPLAY_MEMORY_SIZE = 50_000 # How many last steps to keep for model training
+REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training
 MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start training
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
 
-MODEL_NAME = "4_8_f_16d_64d_eps_0_1_same"
+# np = no pooling
+# p
+# c = conv
+# f = flatten
+# d = dense
+MODEL_NAME = "8c_maxp_16c_maxp_f_8d_32d_eps_0_2"
 
 class DQNAgent:
-    def __init__(self, env_shape):
+    def __init__(self, env_shape=(10, 10, 3)):
+        print('env shape =', env_shape)
 
         # Main model
         self.model = self.create_model(env_shape)
@@ -43,17 +48,19 @@ class DQNAgent:
     def create_model(self, env_shape):
         model = Sequential()
 
-        model.add(Conv2D(4, (3, 3), activation='relu', input_shape=env_shape, padding='same'))
+        model.add(Conv2D(8, (3, 3), activation='relu', input_shape=env_shape))
+        model.add(MaxPool2D((3, 3)))
         model.add(Dropout(0.2))
 
-        model.add(Conv2D(8, (3, 3), activation='relu', padding='same'))
-        # model.add(MaxPool2D((3, 3)))
+        model.add(Conv2D(16, (3, 3), activation='relu'))
+        model.add(MaxPool2D((3, 3)))
+
         model.add(Dropout(0.2))
 
         model.add(Flatten())
-        model.add(Dense(16, activation='relu'))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(4, activation='linear')) # 4 = action space size
+        model.add(Dense(8, activation='relu'))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dense(4, activation='linear'))  # 4 <- action space size
 
         model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
         print(model.summary())
@@ -120,6 +127,5 @@ class DQNAgent:
         # Queries main network for Q values given current observation space (environment state)
 
     def get_qs(self, state):
-        #return self.model.predict(np.array(state).reshape(-1, *state.shape) / 255)[0]
         return self.target_model.predict(state.reshape(-1, *state.shape)/255)[0]
 

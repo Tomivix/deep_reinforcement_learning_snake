@@ -28,9 +28,9 @@ UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
 # d = dense
 MODEL_NAME = "d127_d256_d64_d64_d4"
 
-class DQNAgent_simple_nn:
+
+class DQNAgentSimpleNN:
     def __init__(self, env_shape=(28,)):
-        print('env shape =', env_shape)
 
         # Main model
         self.model = self.create_model(env_shape)
@@ -58,7 +58,7 @@ class DQNAgent_simple_nn:
 
         model.add(Dense(64, activation='relu'))
         model.add(Dense(64, activation='relu'))
-        model.add(Dense(4, activation='linear')) # 4 = action space size
+        model.add(Dense(4, activation='linear'))  # 4 = action space size
 
         model.compile(loss="mse", optimizer=Adam(lr=0.001), metrics=['accuracy'])
         print(model.summary())
@@ -128,6 +128,7 @@ class DQNAgent_simple_nn:
         #return self.model.predict(np.array(state).reshape(-1, *state.shape) / 255)[0]
         return self.target_model.predict(state.reshape(-1, *state.shape))[0]
 
-model = DQNAgent_simple_nn().model
+
+model = DQNAgentSimpleNN().model
 print(model.summary())
 

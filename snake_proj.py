@@ -1,5 +1,3 @@
-# TODO ustawic limit krokow snejka na np. 300
-# dostosowac epsilon do wiekszej liczby EPISODOW
 import gym
 import gym_snake
 import numpy as np
@@ -10,10 +8,8 @@ import os
 import random
 from tqdm import tqdm
 # from DQNAgent import DQNAgent, MODEL_NAME  # comment for convnets
-from DQNAgent_simple_nn import DQNAgent_simple_nn, MODEL_NAME
+from DQNAgentSimpleNN import DQNAgentSimpleNN, MODEL_NAME
 from env_converter import get_input_for_nn
-
-MEMORY_FRACTION = 0.20 # useful to train multiple snakes
 
 
 # Environment settings
@@ -21,7 +17,7 @@ EPISODES = 60_000
 
 # Exploration settings
 START_EPSILON = 0.2
-epsilon = START_EPSILON  # not a constant, going to be decayed #### zmienilem z 1 na 0.1
+epsilon = START_EPSILON  # not a constant, going to be decayed ## I changed from  1 to 0.1
 
 EPSILON_DECAY = 0.999
 MIN_EPSILON = 0.001
@@ -51,10 +47,7 @@ env.unit_gap = 0
 obs = env.reset()
 
 # agent = DQNAgent(obs.shape) # for convnets
-agent = DQNAgent_simple_nn((28,)) # for simple nn
-
-
-
+agent = DQNAgentSimpleNN((28,))  # for simple nn
 
 # Controller
 game_controller = env.controller
@@ -95,9 +88,9 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
     done = False
     apple_count = 0
     while not done:
-        #env.render() podczas testowania
+        # env.render()  # for testing
 
-        #if env.controller.snakes[0] is not None:
+        # if env.controller.snakes[0] is not None:
         #    nn_input = get_input_for_nn(env, 0)
         #    for i in range(0, 28):
         #        print(f'{episode} {step} {i} {nn_input[i]}')
@@ -112,25 +105,13 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             #action = np.random.randint(0, env.ACTION_SPACE_SIZE)
             action = np.random.randint(0, 3)
 
-        # print('action -> ', action)
-        # last_obs, rewards, done, info = env.step(action)  # Implement action
-        # print('last_obs', last_obs)
-        # print('last_obs.shape', last_obs.shape)
-        # print('reward', rewards)
-        # print('done', done)
-        # print('info', info)
-        # print('===================')
-        # time.sleep(10)
-        # if done:
-        #     env.reset()
-
         new_state, reward, done, info = env.step([action])
         new_state = get_input_for_nn(env, 0)  # comment line for convnets
 
         if reward == 50:
             apple_count += 1
 
-        # Transform new continous state to new discrete state and count reward
+        # Transform new continuous state to new discrete state and count reward
         episode_reward += reward
 
         if SHOW_PREVIEW and not episode % AGGREGATE_STATS_EVERY:
@@ -171,10 +152,10 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
         print(f'min_apple: {min_apple}')
         print(f'max_apple: {max_apple}')
         print('==========================')
-        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, average_apple=average_apple, min_apple=min_apple, max_apple=max_apple) # tak bylo
+        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon, average_apple=average_apple, min_apple=min_apple, max_apple=max_apple)
         #agent.tensorboard._write_logs(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
 
-        # Save model, but only when min reward is greater or equal a set value
+        # Save model every 500 episodes
         #if min_reward >= MIN_REWARD:
         if episode % 500 == 0 or episode == 1:
             #agent.model.save(f'models\{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')

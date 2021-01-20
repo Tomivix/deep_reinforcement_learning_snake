@@ -1,12 +1,15 @@
 import gym
 import gym_snake
-#from DQNAgent import DQNAgent
+# from DQNAgent import DQNAgent
 import numpy as np
 import tensorflow as tf
+from tensorflow.compat.v1.keras.backend import set_session
 
-import time
-import os
-import random
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+config.log_device_placement = True  # to log device placement (on which device the operation ran)
+sess = tf.compat.v1.Session(config=config)
+
 
 DISCOUNT = 0.97
 REPLAY_MEMORY_SIZE = 50_000  # How many last steps to keep for model training
@@ -14,8 +17,7 @@ MIN_REPLAY_MEMORY_SIZE = 1_000  # Minimum number of steps in a memory to start t
 MINIBATCH_SIZE = 64  # How many steps (samples) to use for training
 UPDATE_TARGET_EVERY = 5  # Terminal states (end of episodes)
 MODEL_NAME = '2x256'
-#MIN_REWARD = -200  # For model save
-MEMORY_FRACTION = 0.20 # useful to train multiple snakes
+MEMORY_FRACTION = 0.20  # useful to train multiple snakes
 
 
 # Environment settings
@@ -30,44 +32,28 @@ MIN_EPSILON = 0.001
 AGGREGATE_STATS_EVERY = 50  # episodes
 SHOW_PREVIEW = False
 
-# Create models folder
-#if not os.path.isdir('models'):
-#    os.makedirs('models')
 
-# same values when calling random
-
-#random.seed(1)
-#np.random.seed(1)
-#tf.random.set_seed(1)
-
-
+# the same values when calling random
+# random.seed(1)
+# np.random.seed(1)
+# tf.random.set_seed(1)
 
 ## Creating environment
 env = gym.make('snake-v0')
 env.grid_size = [10, 10]
-env.unit_size = 1  # wycommentowac dla moich konwolucyjnych
-env.unit_gap = 0   # wycommenowac dla moich konwolucyjnych
+env.unit_size = 1  # uncomment for Damian's convolutional nn
+env.unit_gap = 0   # uncomment for Damian's convolutional nnh
 
-## Observing snake for now
+
 obs = env.reset()
 
-import tensorflow as tf
+# agent = DQNAgent(obs.shape)
 
-from tensorflow.compat.v1.keras.backend import set_session
-
-config = tf.compat.v1.ConfigProto()
-
-config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
-
-config.log_device_placement = True  # to log device placement (on which device the operation ran)
-
-sess = tf.compat.v1.Session(config=config)
-
-#agent = DQNAgent(obs.shape)
-# unikanie scian 8_16_f_16d_2500.model'
-# schodzenie praktycznie pionowo: 8c_maxp_16c_maxp_f_8d_32d_eps_0_2_3500.model'
-# 'kolejne: models\8c_maxp_16c_maxp_f_8d_32d_eps_0_2_11000.model'
-# najnowsze - z zastosowaniem zwyklej sieci neuronowej: d127_d256_d64_d64_d4_1500.model' dziala bardzo dobrze
+# test models:
+# model that avoids walls 8_16_f_16d_2500.model'
+# model that verically moves downwards: 8c_maxp_16c_maxp_f_8d_32d_eps_0_2_3500.model'
+# 'next model': models\8c_maxp_16c_maxp_f_8d_32d_eps_0_2_11000.model'
+# classic nn, snakes performs rly well: d127_d256_d64_d64_d4_1500.model'
 model = tf.keras.models.load_model('models\od_Tomka_4_8_f_16d_64d_eps_0_1_same_20000.model')
 
 # Controller
@@ -81,8 +67,6 @@ grid_pixels = grid_object.grid
 snakes_array = game_controller.snakes
 snake_object1 = snakes_array[0]
 
-
-
 set_session(sess)
 
 
@@ -95,33 +79,22 @@ for i in range(100):
 	no_of_moves = 0
 	while not done:  # run for 1000 steps
 		env.render()  # Render latest instance of game
-		#if env.controller.snakes[0] is not None:
-		#	get_input_for_nn(env, 0)
+		# if env.controller.snakes[0] is not None:  # uncomment for classic neural network
+		# 	get_input_for_nn(env, 0)  # uncomment for classic neural network
 		
-		
-		#action = env.action_space.sample()  # Random action
-		
-		#action = np.argmax(model.predict(get_input_for_nn(env, 0).reshape(-1, *get_input_for_nn(env, 0).shape))[0]) # zwykla siec
-		action = np.argmax(model.predict(obs.reshape(-1, *obs.shape)/255)[0]) #kolwolucyjne
+		# action = np.argmax(model.predict(get_input_for_nn(env, 0).reshape(-1, *get_input_for_nn(env, 0).shape))[0]) # # uncomment for classic neural network
+		action = np.argmax(model.predict(obs.reshape(-1, *obs.shape)/255)[0]) # uncomment for convolutional neural network
 
-		#action = model.predict
 		print('action -> ', action)
 		print(f'EPISODE:  {i}')
 		obs, rewards, done, info = env.step([action])  # Implement action
 		
 		no_of_moves += 1
-		
-		#print('last_obs', last_obs)
-		#print('last_obs.shape', last_obs.shape)
-		#print('reward', rewards)
-		#print('done', done)
-		#print('info', info)
-		
-		print('===================')
-		#time.sleep(10)
+
 		if done:
 			env.reset()
 		
 		if no_of_moves > 400:
 			done = True
+
 env.close()
